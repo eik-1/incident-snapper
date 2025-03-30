@@ -1,11 +1,5 @@
 
-import { createClient } from "@supabase/supabase-js";
-
-// Create a single supabase client for interacting with your database
-const supabase = createClient(
-  "https://your-supabase-url.supabase.co",
-  "your-anon-key"
-);
+import { supabase } from "@/integrations/supabase/client";
 
 export type Incident = {
   id: string;

@@ -1,13 +1,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-// Create a single supabase client for interacting with your database
-const supabase = createClient(
-  "https://your-supabase-url.supabase.co",
-  "your-anon-key"
-);
 
 type User = {
   id: string;
@@ -33,23 +27,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check active sessions and sets the user
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        fetchUserProfile(session.user.id);
-      } else {
-        setLoading(false);
-      }
-    });
-
-    // Listen for changes on auth state
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
         fetchUserProfile(session.user.id);
       } else {
         setUser(null);
+        setLoading(false);
+      }
+    });
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        fetchUserProfile(session.user.id);
+      } else {
         setLoading(false);
       }
     });
@@ -97,16 +89,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
 
       if (data.user) {
-        // Create profile record
-        const { error: profileError } = await supabase.from("profiles").insert([
-          {
-            id: data.user.id,
-            email,
-            name,
-            locality,
-            is_admin: false,
-          },
-        ]);
+        // Update profile record with name and locality
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .update({ name, locality })
+          .eq("id", data.user.id);
 
         if (profileError) throw profileError;
         

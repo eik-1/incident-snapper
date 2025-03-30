@@ -1,8 +1,9 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { AlertTriangle, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useMobile } from "@/hooks/useMobile";
+import { useIsMobile as useMobile } from "@/hooks/use-mobile";
 import {
   DropdownMenu,
   DropdownMenuContent,

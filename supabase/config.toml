@@ -1,1 +1,14 @@
+
 project_id = "wnimddxwlrkuuwmnkmks"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+
+[functions]
+[functions.notify-locality]
+verify_jwt = false
+
+[secrets]
+RESEND_API_KEY = "re_AUq7x3sn_9ZZRdRN8GKgZZXogepq13q5S"

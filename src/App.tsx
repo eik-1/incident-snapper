@@ -11,6 +11,7 @@ import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import ReportIncident from "./pages/ReportIncident";
 import AdminDashboard from "./pages/AdminDashboard";
+import UserManagement from "./pages/UserManagement";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 import NotFound from "./pages/NotFound";
@@ -41,6 +42,11 @@ const App = () => (
             <Route path="/admin" element={
               <AdminRoute>
                 <AdminDashboard />
+              </AdminRoute>
+            } />
+            <Route path="/users" element={
+              <AdminRoute>
+                <UserManagement />
               </AdminRoute>
             } />
             <Route path="*" element={<NotFound />} />

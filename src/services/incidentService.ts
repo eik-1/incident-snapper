@@ -55,8 +55,6 @@ export const reportIncident = async (
 
     if (error) throw error;
 
-    // 4. Notify users in the same locality (this would be handled by a Supabase Edge Function)
-    // For demonstration, we'll just log this
     console.log(`Notification would be sent to users in ${locality}`);
 
     return data[0];
@@ -128,14 +126,57 @@ export const updateIncidentStatus = async (
 
     if (error) throw error;
 
-    // If approved, send email notifications (would be handled by Supabase Edge Function)
+    // If approved, send email notifications to users in the same locality
     if (status === "approved") {
-      console.log(`Notifications would be sent for incident ${incidentId}`);
+      try {
+        const { error: notifyError } = await supabase.functions.invoke("notify-locality", {
+          body: { incidentId: data[0].id }
+        });
+        
+        if (notifyError) {
+          console.error("Error sending notifications:", notifyError);
+        }
+      } catch (notifyError) {
+        console.error("Failed to call notify-locality function:", notifyError);
+      }
     }
 
     return data[0] as Incident;
   } catch (error) {
     console.error("Error updating incident status:", error);
+    throw error;
+  }
+};
+
+// New function to set a user as admin
+export const setUserAsAdmin = async (userId: string, isAdmin: boolean) => {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .update({ is_admin: isAdmin })
+      .eq("id", userId)
+      .select();
+
+    if (error) throw error;
+    return data[0];
+  } catch (error) {
+    console.error("Error updating user admin status:", error);
+    throw error;
+  }
+};
+
+// New function to get all users
+export const getAllUsers = async () => {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error("Error fetching users:", error);
     throw error;
   }
 };

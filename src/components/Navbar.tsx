@@ -1,159 +1,195 @@
-
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { AlertTriangle, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Menu, X, Bell, User } from "lucide-react";
+import { useMobile } from "@/hooks/useMobile";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Menu } from "lucide-react";
 
 const Navbar = () => {
   const { user, signOut } = useAuth();
-  const navigate = useNavigate();
-  const [isOpen, setIsOpen] = useState(false);
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/");
-  };
+  const isMobile = useMobile();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <nav className="bg-white shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex">
-            <Link to="/" className="flex-shrink-0 flex items-center">
-              <Bell className="h-8 w-8 text-incident-600" />
-              <span className="ml-2 text-xl font-bold text-incident-800">IncidentSnapper</span>
-            </Link>
-          </div>
+    <header className="bg-white border-b border-gray-200">
+      <div className="container mx-auto px-4">
+        <div className="flex justify-between items-center h-16">
+          <Link to="/" className="flex items-center">
+            <AlertTriangle className="h-6 w-6 text-incident-600 mr-2" />
+            <span className="font-bold text-xl text-gray-900">IncidentSnapper</span>
+          </Link>
 
-          {/* Desktop menu */}
-          <div className="hidden sm:flex sm:items-center sm:space-x-4">
-            {user ? (
-              <>
-                <Link
-                  to="/dashboard"
-                  className="text-gray-700 hover:text-incident-600 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  to="/report"
-                  className="text-gray-700 hover:text-incident-600 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  Report Incident
-                </Link>
-                {user.isAdmin && (
-                  <Link
-                    to="/admin"
+          {!isMobile ? (
+            <nav className="flex items-center space-x-4">
+              {user ? (
+                <>
+                  <Link 
+                    to="/dashboard" 
                     className="text-gray-700 hover:text-incident-600 px-3 py-2 rounded-md text-sm font-medium"
                   >
-                    Admin
+                    Dashboard
                   </Link>
-                )}
-                <div className="flex items-center space-x-2 ml-4">
-                  <User className="h-5 w-5 text-incident-500" />
-                  <span className="text-sm font-medium text-gray-700">{user.name}</span>
-                </div>
-                <Button onClick={handleSignOut} variant="outline" size="sm">
-                  Sign Out
-                </Button>
-              </>
-            ) : (
-              <>
-                <Link to="/login">
-                  <Button variant="outline" size="sm">
-                    Log In
-                  </Button>
-                </Link>
-                <Link to="/signup">
-                  <Button size="sm">Sign Up</Button>
-                </Link>
-              </>
-            )}
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="flex items-center sm:hidden">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-incident-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-incident-500"
-            >
-              <span className="sr-only">Open main menu</span>
-              {isOpen ? (
-                <X className="block h-6 w-6" aria-hidden="true" />
+                  <Link 
+                    to="/report" 
+                    className="text-gray-700 hover:text-incident-600 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Report Incident
+                  </Link>
+                  {user.isAdmin && (
+                    <>
+                      <Link 
+                        to="/admin" 
+                        className="text-gray-700 hover:text-incident-600 px-3 py-2 rounded-md text-sm font-medium"
+                      >
+                        Admin Dashboard
+                      </Link>
+                      <Link 
+                        to="/users" 
+                        className="text-gray-700 hover:text-incident-600 px-3 py-2 rounded-md text-sm font-medium"
+                      >
+                        User Management
+                      </Link>
+                    </>
+                  )}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback>
+                            {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="end" forceMount>
+                      <DropdownMenuLabel className="font-normal">
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-sm font-medium leading-none">{user.name || "User"}</p>
+                          <p className="text-xs leading-none text-muted-foreground">
+                            {user.email}
+                          </p>
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => signOut()}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Log out</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </>
               ) : (
-                <Menu className="block h-6 w-6" aria-hidden="true" />
+                <>
+                  <Link 
+                    to="/login" 
+                    className="text-gray-700 hover:text-incident-600 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Login
+                  </Link>
+                  <Link 
+                    to="/signup" 
+                    className="bg-incident-600 text-white hover:bg-incident-700 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Sign Up
+                  </Link>
+                </>
               )}
-            </button>
-          </div>
+            </nav>
+          ) : (
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Menu className="h-6 w-6" />
+                  <span className="sr-only">Open menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="top" className="pt-0">
+                <SheetHeader className="place-items-start px-4 py-8">
+                  <SheetTitle className="text-lg font-semibold">
+                    IncidentSnapper
+                  </SheetTitle>
+                  <SheetDescription>
+                    Navigate through the app.
+                  </SheetDescription>
+                </SheetHeader>
+                <nav className="flex flex-col space-y-2 px-4">
+                  {user ? (
+                    <>
+                      <Link
+                        to="/dashboard"
+                        className="block py-2 text-gray-700 hover:text-incident-600 rounded-md"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Dashboard
+                      </Link>
+                      <Link
+                        to="/report"
+                        className="block py-2 text-gray-700 hover:text-incident-600 rounded-md"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Report Incident
+                      </Link>
+                      {user.isAdmin && (
+                        <>
+                          <Link
+                            to="/admin"
+                            className="block py-2 text-gray-700 hover:text-incident-600 rounded-md"
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            Admin Dashboard
+                          </Link>
+                           <Link
+                            to="/users"
+                            className="block py-2 text-gray-700 hover:text-incident-600 rounded-md"
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            User Management
+                          </Link>
+                        </>
+                      )}
+                      <Button variant="destructive" className="mt-4" onClick={() => {
+                        signOut();
+                        setMobileMenuOpen(false);
+                      }}>
+                        Log Out
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        to="/login"
+                        className="block py-2 text-gray-700 hover:text-incident-600 rounded-md"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Login
+                      </Link>
+                      <Link
+                        to="/signup"
+                        className="block py-2 bg-incident-600 text-white hover:bg-incident-700 rounded-md"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Sign Up
+                      </Link>
+                    </>
+                  )}
+                </nav>
+              </SheetContent>
+            </Sheet>
+          )}
         </div>
       </div>
-
-      {/* Mobile menu */}
-      {isOpen && (
-        <div className="sm:hidden">
-          <div className="pt-2 pb-3 space-y-1">
-            {user ? (
-              <>
-                <Link
-                  to="/dashboard"
-                  className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-incident-600 hover:bg-gray-50"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  to="/report"
-                  className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-incident-600 hover:bg-gray-50"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Report Incident
-                </Link>
-                {user.isAdmin && (
-                  <Link
-                    to="/admin"
-                    className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-incident-600 hover:bg-gray-50"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Admin
-                  </Link>
-                )}
-                <div className="flex items-center space-x-2 px-3 py-2">
-                  <User className="h-5 w-5 text-incident-500" />
-                  <span className="text-sm font-medium text-gray-700">{user.name}</span>
-                </div>
-                <button
-                  onClick={() => {
-                    handleSignOut();
-                    setIsOpen(false);
-                  }}
-                  className="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:text-incident-600 hover:bg-gray-50"
-                >
-                  Sign Out
-                </button>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-incident-600 hover:bg-gray-50"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Log In
-                </Link>
-                <Link
-                  to="/signup"
-                  className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-incident-600 hover:bg-gray-50"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Sign Up
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-    </nav>
+    </header>
   );
 };
 

@@ -7,7 +7,7 @@ import Navbar from "@/components/Navbar";
 import { useAuth } from "@/contexts/AuthContext";
 import { getUserIncidents, getLocalityIncidents, Incident } from "@/services/incidentService";
 import IncidentCard from "@/components/IncidentCard";
-import { BellAlert, Plus } from "lucide-react";
+import { Bell, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 const Dashboard = () => {
@@ -78,7 +78,7 @@ const Dashboard = () => {
               </div>
             ) : (
               <div className="text-center py-12 bg-white rounded-lg shadow-sm">
-                <BellAlert className="h-12 w-12 text-incident-400 mx-auto mb-4" />
+                <Bell className="h-12 w-12 text-incident-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900">No incidents reported</h3>
                 <p className="mt-2 text-gray-500">
                   There are no approved incidents in your locality yet.
@@ -100,7 +100,7 @@ const Dashboard = () => {
               </div>
             ) : (
               <div className="text-center py-12 bg-white rounded-lg shadow-sm">
-                <BellAlert className="h-12 w-12 text-incident-400 mx-auto mb-4" />
+                <Bell className="h-12 w-12 text-incident-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900">No reports yet</h3>
                 <p className="mt-2 text-gray-500">
                   You haven't reported any incidents yet.

@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
-import { BellAlert, Shield, MapPin, Camera, Users } from "lucide-react";
+import { Bell, Shield, MapPin, Camera, Users } from "lucide-react";
 
 const Index = () => {
   return (
@@ -48,7 +48,7 @@ const Index = () => {
                     className="w-full h-64 object-cover"
                   />
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <BellAlert className="h-20 w-20 text-incident-500 opacity-75" />
+                    <Bell className="h-20 w-20 text-incident-500 opacity-75" />
                   </div>
                 </div>
               </div>

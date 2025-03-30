@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { Menu, X, BellAlert, User } from "lucide-react";
+import { Menu, X, Bell, User } from "lucide-react";
 
 const Navbar = () => {
   const { user, signOut } = useAuth();
@@ -21,7 +21,7 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <BellAlert className="h-8 w-8 text-incident-600" />
+              <Bell className="h-8 w-8 text-incident-600" />
               <span className="ml-2 text-xl font-bold text-incident-800">IncidentSnapper</span>
             </Link>
           </div>

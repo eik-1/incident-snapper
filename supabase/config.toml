@@ -9,6 +9,5 @@ schemas = ["public", "storage", "graphql_public"]
 [functions]
 [functions.notify-locality]
 verify_jwt = false
-
-[secrets]
+[functions.notify-locality.secrets]
 RESEND_API_KEY = "re_AUq7x3sn_9ZZRdRN8GKgZZXogepq13q5S"

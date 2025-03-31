@@ -10,7 +10,7 @@ const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 // Log environment variable status (for debugging)
 console.log("RESEND_API_KEY exists:", !!resendApiKey);
-console.log("RESEND_API_KEY value:", resendApiKey?.substring(0, 5) + "...");
+console.log("RESEND_API_KEY first chars:", resendApiKey ? resendApiKey.substring(0, 5) + "..." : "undefined");
 console.log("SUPABASE_URL exists:", !!supabaseUrl);
 console.log("SUPABASE_SERVICE_ROLE_KEY exists:", !!supabaseServiceKey);
 
@@ -20,7 +20,10 @@ if (!resendApiKey) {
 }
 
 const resend = new Resend(resendApiKey);
-const supabase = createClient(supabaseUrl as string, supabaseServiceKey as string);
+const supabase = createClient(
+  supabaseUrl || "", 
+  supabaseServiceKey || ""
+);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -53,7 +56,7 @@ serve(async (req) => {
     if (incidentError || !incident) {
       console.error("Error fetching incident:", incidentError);
       return new Response(
-        JSON.stringify({ error: "Incident not found or not approved" }),
+        JSON.stringify({ error: "Incident not found or not approved", details: incidentError }),
         { 
           status: 404,
           headers: { "Content-Type": "application/json", ...corsHeaders }
@@ -67,12 +70,13 @@ serve(async (req) => {
     const { data: users, error: usersError } = await supabase
       .from("profiles")
       .select("email, name")
-      .eq("locality", incident.locality);
+      .eq("locality", incident.locality)
+      .neq("email", null);  // Only get users with valid emails
     
     if (usersError) {
       console.error("Error fetching users:", usersError);
       return new Response(
-        JSON.stringify({ error: "Error fetching users in locality" }),
+        JSON.stringify({ error: "Error fetching users in locality", details: usersError }),
         { 
           status: 500, 
           headers: { "Content-Type": "application/json", ...corsHeaders }
@@ -94,6 +98,11 @@ serve(async (req) => {
 
     // Send email to each user in the locality
     const emailPromises = users.map(user => {
+      if (!user.email) {
+        console.log("Skipping user with no email");
+        return Promise.resolve();
+      }
+      
       console.log(`Sending email to ${user.email}`);
       return resend.emails.send({
         from: "Incident Snapper <onboarding@resend.dev>",
@@ -116,8 +125,8 @@ serve(async (req) => {
     });
 
     try {
-      const results = await Promise.all(emailPromises);
-      console.log(`Successfully sent notifications to ${emailPromises.length} users in ${incident.locality}`);
+      const results = await Promise.all(emailPromises.filter(Boolean));
+      console.log(`Successfully sent notifications to ${results.length} users in ${incident.locality}`);
       console.log("Email send results:", results);
     } catch (emailError) {
       console.error("Error sending emails:", emailError);
@@ -133,7 +142,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `Notifications sent to ${emailPromises.length} users in ${incident.locality}` 
+        message: `Notifications sent to ${emailPromises.filter(Boolean).length} users in ${incident.locality}` 
       }),
       { 
         status: 200,

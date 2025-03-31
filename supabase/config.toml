@@ -9,8 +9,9 @@ schemas = ["public", "storage", "graphql_public"]
 [functions]
 [functions.notify-locality]
 verify_jwt = false
+secrets = ["RESEND_API_KEY", "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]
 
-[functions.notify-locality.secrets]
+[env]
 RESEND_API_KEY = "re_AUq7x3sn_9ZZRdRN8GKgZZXogepq13q5S"
 SUPABASE_URL = "env:SUPABASE_URL"
 SUPABASE_SERVICE_ROLE_KEY = "env:SUPABASE_SERVICE_ROLE_KEY"

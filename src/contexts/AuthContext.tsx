@@ -62,8 +62,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser({
         id: userId,
         email: data.email,
-        name: data.name,
-        locality: data.locality,
+        name: data.name || '',
+        locality: data.locality || '',
         isAdmin: data.is_admin || false,
       });
     } catch (error) {
@@ -81,15 +81,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   ) => {
     try {
       setLoading(true);
+      
+      // First create the user
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            name,
+            locality
+          }
+        }
       });
 
       if (error) throw error;
 
       if (data.user) {
-        // Update profile record with name and locality
+        // Update profile record explicitly with name and locality
         const { error: profileError } = await supabase
           .from("profiles")
           .update({ name, locality })
@@ -110,7 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error, data } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -118,6 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
       
       toast.success("Logged in successfully!");
+      return data;
     } catch (error: any) {
       toast.error(error.message || "An error occurred during sign in");
       throw error;

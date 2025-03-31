@@ -24,6 +24,21 @@ export const reportIncident = async (
   userName: string
 ) => {
   try {
+    // Make sure userName isn't empty
+    if (!userName || userName.trim() === "") {
+      const { data: userData, error: userError } = await supabase
+        .from("profiles")
+        .select("name")
+        .eq("id", userId)
+        .single();
+      
+      if (!userError && userData) {
+        userName = userData.name || "Anonymous User";
+      } else {
+        userName = "Anonymous User";
+      }
+    }
+
     // 1. Upload image to storage
     const fileName = `${userId}_${Date.now()}_${imageFile.name}`;
     const { data: uploadData, error: uploadError } = await supabase.storage
@@ -39,7 +54,7 @@ export const reportIncident = async (
 
     const imageUrl = urlData.publicUrl;
 
-    // 3. Insert incident record
+    // 3. Insert incident record - ensure userName is included
     const { data, error } = await supabase.from("incidents").insert([
       {
         title,

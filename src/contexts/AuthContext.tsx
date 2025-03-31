@@ -103,10 +103,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
 
       if (data.user) {
-        // Update profile record explicitly with name and locality
+        // Now explicitly update the profiles table with the name and locality
         const { error: profileError } = await supabase
           .from("profiles")
-          .update({ name, locality })
+          .update({ 
+            name, 
+            locality,
+            email // Make sure email is also set
+          })
           .eq("id", data.user.id);
 
         if (profileError) throw profileError;

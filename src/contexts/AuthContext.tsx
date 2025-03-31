@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { AuthError, Session, User, WeakPassword } from "@supabase/supabase-js";
 
 type User = {
   id: string;
@@ -15,7 +16,11 @@ type AuthContextType = {
   user: User | null;
   loading: boolean;
   signUp: (email: string, password: string, name: string, locality: string) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{
+    user: User | null;
+    session: Session | null;
+    weakPassword?: WeakPassword | null;
+  }>;
   signOut: () => Promise<void>;
   updateProfile: (data: { name?: string; locality?: string }) => Promise<void>;
 };

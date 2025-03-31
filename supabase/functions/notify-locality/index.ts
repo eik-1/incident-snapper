@@ -10,10 +10,15 @@ const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 // Log environment variable status (for debugging)
 console.log("RESEND_API_KEY exists:", !!resendApiKey);
+console.log("RESEND_API_KEY value:", resendApiKey?.substring(0, 5) + "...");
 console.log("SUPABASE_URL exists:", !!supabaseUrl);
 console.log("SUPABASE_SERVICE_ROLE_KEY exists:", !!supabaseServiceKey);
 
 // Initialize clients
+if (!resendApiKey) {
+  throw new Error("RESEND_API_KEY is required");
+}
+
 const resend = new Resend(resendApiKey);
 const supabase = createClient(supabaseUrl as string, supabaseServiceKey as string);
 
@@ -35,6 +40,8 @@ serve(async (req) => {
   try {
     const { incidentId } = await req.json() as NotifyRequest;
     
+    console.log("Received request to notify for incident:", incidentId);
+    
     // Fetch the approved incident
     const { data: incident, error: incidentError } = await supabase
       .from("incidents")
@@ -54,6 +61,8 @@ serve(async (req) => {
       );
     }
 
+    console.log("Found incident:", incident.title, "in locality:", incident.locality);
+
     // Fetch users in the same locality
     const { data: users, error: usersError } = await supabase
       .from("profiles")
@@ -71,6 +80,8 @@ serve(async (req) => {
       );
     }
 
+    console.log(`Found ${users?.length || 0} users in locality ${incident.locality}`);
+
     if (!users || users.length === 0) {
       return new Response(
         JSON.stringify({ message: "No users found in locality" }),
@@ -83,6 +94,7 @@ serve(async (req) => {
 
     // Send email to each user in the locality
     const emailPromises = users.map(user => {
+      console.log(`Sending email to ${user.email}`);
       return resend.emails.send({
         from: "Incident Snapper <onboarding@resend.dev>",
         to: user.email,
@@ -104,12 +116,13 @@ serve(async (req) => {
     });
 
     try {
-      await Promise.all(emailPromises);
-      console.log(`Sent notifications to ${emailPromises.length} users in ${incident.locality}`);
+      const results = await Promise.all(emailPromises);
+      console.log(`Successfully sent notifications to ${emailPromises.length} users in ${incident.locality}`);
+      console.log("Email send results:", results);
     } catch (emailError) {
       console.error("Error sending emails:", emailError);
       return new Response(
-        JSON.stringify({ error: "Error sending email notifications" }),
+        JSON.stringify({ error: "Error sending email notifications", details: emailError.message }),
         { 
           status: 500,
           headers: { "Content-Type": "application/json", ...corsHeaders }

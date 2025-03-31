@@ -3,10 +3,17 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
 import { Resend } from "npm:resend@2.0.0";
 
+// Get environment variables
 const resendApiKey = Deno.env.get("RESEND_API_KEY");
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
+// Log environment variable status (for debugging)
+console.log("RESEND_API_KEY exists:", !!resendApiKey);
+console.log("SUPABASE_URL exists:", !!supabaseUrl);
+console.log("SUPABASE_SERVICE_ROLE_KEY exists:", !!supabaseServiceKey);
+
+// Initialize clients
 const resend = new Resend(resendApiKey);
 const supabase = createClient(supabaseUrl as string, supabaseServiceKey as string);
 

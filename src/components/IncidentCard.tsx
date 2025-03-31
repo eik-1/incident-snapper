@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,21 +15,29 @@ type IncidentCardProps = {
 const IncidentCard = ({ incident, isAdmin, onStatusChange }: IncidentCardProps) => {
   const handleApprove = async () => {
     try {
+      toast.loading("Approving incident...");
       const updatedIncident = await updateIncidentStatus(incident.id, "approved");
+      toast.dismiss();
       toast.success("Incident approved successfully");
       onStatusChange?.(updatedIncident);
     } catch (error) {
+      toast.dismiss();
       toast.error("Failed to approve incident");
+      console.error("Error approving incident:", error);
     }
   };
 
   const handleReject = async () => {
     try {
+      toast.loading("Rejecting incident...");
       const updatedIncident = await updateIncidentStatus(incident.id, "rejected");
+      toast.dismiss();
       toast.success("Incident rejected");
       onStatusChange?.(updatedIncident);
     } catch (error) {
+      toast.dismiss();
       toast.error("Failed to reject incident");
+      console.error("Error rejecting incident:", error);
     }
   };
 

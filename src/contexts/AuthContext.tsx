@@ -2,7 +2,8 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { AuthError, Session, User, WeakPassword } from "@supabase/supabase-js";
+import { AuthError, Session, WeakPassword } from "@supabase/supabase-js";
+import { User as SupabaseUser } from "@supabase/supabase-js";
 
 type User = {
   id: string;
@@ -131,7 +132,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
       
       toast.success("Logged in successfully!");
-      return data;
+      
+      // Convert the Supabase user to our User type if available
+      let appUser: User | null = null;
+      if (data.user) {
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", data.user.id)
+          .single();
+          
+        if (profileData) {
+          appUser = {
+            id: data.user.id,
+            email: data.user.email || "",
+            name: profileData.name || "",
+            locality: profileData.locality || "",
+            isAdmin: profileData.is_admin || false,
+          };
+        }
+      }
+      
+      return {
+        user: appUser,
+        session: data.session,
+        weakPassword: data.weakPassword
+      };
     } catch (error: any) {
       toast.error(error.message || "An error occurred during sign in");
       throw error;

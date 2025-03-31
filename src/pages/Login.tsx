@@ -20,9 +20,11 @@ const Login = () => {
     setError("");
     
     try {
-      await signIn(email, password);
-      // Redirect to dashboard after successful login
-      navigate("/dashboard");
+      const result = await signIn(email, password);
+      if (result.user) {
+        // Redirect to dashboard after successful login
+        navigate("/dashboard");
+      }
     } catch (err: any) {
       setError(err.message || "Failed to log in");
     }

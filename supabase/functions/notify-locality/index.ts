@@ -97,52 +97,64 @@ serve(async (req) => {
     }
 
     // Send email to each user in the locality
-    const emailPromises = users.map(user => {
+    const emailResults = [];
+    const emailErrors = [];
+
+    for (const user of users) {
       if (!user.email) {
         console.log("Skipping user with no email");
-        return Promise.resolve();
+        continue;
       }
       
-      console.log(`Sending email to ${user.email}`);
-      return resend.emails.send({
-        from: "Incident Snapper <onboarding@resend.dev>",
-        to: user.email,
-        subject: `Alert: New Incident in ${incident.locality}`,
-        html: `
-          <h1>New Incident Reported in ${incident.locality}</h1>
-          <p>Hello ${user.name || "there"},</p>
-          <p>A new incident has been reported and verified in your area:</p>
-          <div style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
-            <h2>${incident.title}</h2>
-            <p><strong>Location:</strong> ${incident.location}</p>
-            <p><strong>Description:</strong> ${incident.description}</p>
-            ${incident.image_url ? `<img src="${incident.image_url}" alt="Incident Image" style="max-width: 100%; height: auto; margin-top: 10px;">` : ''}
-          </div>
-          <p>Please stay alert and take necessary precautions.</p>
-          <p>Regards,<br>Incident Snapper Team</p>
-        `,
-      });
-    });
-
-    try {
-      const results = await Promise.all(emailPromises.filter(Boolean));
-      console.log(`Successfully sent notifications to ${results.length} users in ${incident.locality}`);
-      console.log("Email send results:", results);
-    } catch (emailError) {
-      console.error("Error sending emails:", emailError);
-      return new Response(
-        JSON.stringify({ error: "Error sending email notifications", details: emailError.message }),
-        { 
-          status: 500,
-          headers: { "Content-Type": "application/json", ...corsHeaders }
+      try {
+        console.log(`Attempting to send email to ${user.email}`);
+        const result = await resend.emails.send({
+          from: "Incident Snapper <onboarding@resend.dev>",
+          to: user.email,
+          subject: `Alert: New Incident in ${incident.locality}`,
+          html: `
+            <h1>New Incident Reported in ${incident.locality}</h1>
+            <p>Hello ${user.name || "there"},</p>
+            <p>A new incident has been reported and verified in your area:</p>
+            <div style="margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+              <h2>${incident.title}</h2>
+              <p><strong>Location:</strong> ${incident.location}</p>
+              <p><strong>Description:</strong> ${incident.description}</p>
+              ${incident.image_url ? `<img src="${incident.image_url}" alt="Incident Image" style="max-width: 100%; height: auto; margin-top: 10px;">` : ''}
+            </div>
+            <p>Please stay alert and take necessary precautions.</p>
+            <p>Regards,<br>Incident Snapper Team</p>
+          `,
+        });
+        
+        console.log(`Email sent successfully to ${user.email}:`, result);
+        emailResults.push({ email: user.email, success: true, result });
+      } catch (emailError) {
+        console.error(`Failed to send email to ${user.email}:`, emailError);
+        emailErrors.push({ email: user.email, error: emailError.message });
+        
+        // Check if it's a domain verification error
+        if (emailError.message && emailError.message.includes("domain")) {
+          console.error("DOMAIN VERIFICATION ISSUE: You need to verify your domain in Resend or use a verified email address for testing");
         }
-      );
+      }
+    }
+
+    console.log(`Email sending complete. Successes: ${emailResults.length}, Errors: ${emailErrors.length}`);
+    
+    if (emailErrors.length > 0) {
+      console.log("Email errors:", emailErrors);
     }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `Notifications sent to ${emailPromises.filter(Boolean).length} users in ${incident.locality}` 
+        message: `Email sending attempted for ${users.length} users in ${incident.locality}`,
+        results: {
+          successful: emailResults.length,
+          failed: emailErrors.length,
+          details: emailErrors.length > 0 ? emailErrors : undefined
+        }
       }),
       { 
         status: 200,

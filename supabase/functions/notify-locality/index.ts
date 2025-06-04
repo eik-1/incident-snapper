@@ -109,7 +109,7 @@ serve(async (req) => {
       try {
         console.log(`Attempting to send email to ${user.email}`);
         const result = await resend.emails.send({
-          from: "Incident Snapper <onboarding@resend.dev>",
+          from: "Incident Snapper <notifications@reppans.xyz>",
           to: user.email,
           subject: `Alert: New Incident in ${incident.locality}`,
           html: `
